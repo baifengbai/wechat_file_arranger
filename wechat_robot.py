@@ -47,7 +47,8 @@ class InputtingImage:
 
     def input_name_and_then_parse(self, image_name):
         self.image_name = image_name
-        image_decode(self.image_path, self.image_name)
+        result = image_decode(self.image_path, self.image_name)
+        return result
 
 
 inputting_image_status = InputtingImage()
@@ -106,11 +107,15 @@ def my_proto_parser(data):
                 else:
                     if message.wxid1 in ADMIN_ID:
                         if inputting_image_status.inputting:
-                            inputting_image_status.input_name_and_then_parse(message.content)
-                            input_file_data_instance = InputFileData(inputting_image_status.image_name + '.png')
-                            input_file_data_instance.output_func()
-                            time.sleep(1)
-                            send_file(GROUP_ID[0], os.path.join(DIR_PATH, '文件列表.txt'))
+                            result = inputting_image_status.input_name_and_then_parse(message.content)
+                            if result:
+                                input_file_data_instance = InputFileData(inputting_image_status.image_name + '.png')
+                                input_file_data_instance.output_func()
+                                time.sleep(1)
+                                send_file(GROUP_ID[0], os.path.join(DIR_PATH, '文件列表.txt'))
+                            else:
+                                send(message.wxid1, '图片解析失败，进程已取消')
+                                inputting_image_status.inputting = 0
                         elif search_result := re.search(r'^删除(\d{8}$)', message.content):
                             file_id = search_result.group(1)
                             file_name = delete_file_by_id(file_id)
@@ -323,16 +328,22 @@ def image_decode(dat_path, dat_name):
     global xor_value
     # dat_dir_path, dat_name = os.path.split(dat_path)[0], os.path.split(dat_path)[1]
     # target_path = r'F:\Users\Tencent Files\WeChat Files\image'
-    target_path = FILE_DIR_PATH
-    with open(dat_path, "rb") as dat_read:
-        if not os.path.exists(target_path):
-            os.makedirs(target_path)
-        out = target_path + "\\" + dat_name + ".png"
-        with open(out, "wb") as png_write:
-            for now in dat_read:
-                for nowByte in now:
-                    newByte = nowByte ^ xor_value
-                    png_write.write(bytes([newByte]))
+    try:
+        target_path = FILE_DIR_PATH
+        with open(dat_path, "rb") as dat_read:
+            if not os.path.exists(target_path):
+                os.makedirs(target_path)
+            out = target_path + "\\" + dat_name + ".png"
+            with open(out, "wb") as png_write:
+                for now in dat_read:
+                    for nowByte in now:
+                        newByte = nowByte ^ xor_value
+                        png_write.write(bytes([newByte]))
+        return True
+    except Exception as e:
+        print(e)
+        return False
+
 
 
 if __name__ == '__main__':
