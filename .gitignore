@@ -128,3 +128,5 @@ dmypy.json
 # Pyre type checker
 .pyre/
 /PyWeChatSpy_v2/
+/file/
+/util/trash/

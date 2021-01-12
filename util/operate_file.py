@@ -2,7 +2,6 @@ import os
 import shutil
 from loguru import logger
 import traceback
-# import time
 
 PROJECT_DIR_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -10,7 +9,7 @@ PROJECT_DIR_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 def move_wechat_file(file):
     try:
         if not os.path.isfile(file):
-            print("%s not exist!" % file)
+            # print("%s not exist!" % file)
             return False
         else:
             fpath, fname = os.path.split(file)  # 分离文件名和路径

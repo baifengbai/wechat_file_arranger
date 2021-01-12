@@ -6,8 +6,9 @@ import time
 import os
 import re
 from loguru import logger
-from util.func_apscheduler import do_at_sometime
-from util.operate_file import move_wechat_file
+
+from util.download_file import download_file
+# from util.func_apscheduler import do_at_sometime
 from util.input_file_data import InputFileData, search_file_by_id, delete_file_by_id
 
 # ------⭐以下内容需要自行配置⭐-----------↓
@@ -18,14 +19,14 @@ from util.input_file_data import InputFileData, search_file_by_id, delete_file_b
 IF_SEND_WARNING_MESSAGE_WHEN_WECHAT_LOG_OUT = False
 
 # 是否接受图片，如需使用该功能，请参考https://blog.csdn.net/zhanglw882/article/details/110221075 来配置xor_value
-IF_RECEIVE_IMAGE = True
+IF_RECEIVE_IMAGE = False
 xor_value = 0x87
 
 # 管理员微信id
-ADMIN_ID = ["wxid_k0jgmjjy1qqm12"]
+ADMIN_ID = ["wxid_**********"]
 
 # 目标群群id
-GROUP_ID = ["25522056057@chatroom"]
+GROUP_ID = ["**********@chatroom"]
 
 # ------⭐以上内容需要自行配置⭐-----------↑
 # ------⭐以上内容需要自行配置⭐-----------↑
@@ -33,6 +34,8 @@ GROUP_ID = ["25522056057@chatroom"]
 
 DIR_PATH = os.path.dirname(os.path.abspath(__file__))
 FILE_DIR_PATH = os.path.join(DIR_PATH, 'file')
+
+if_downloading_file = 0
 
 
 class InputtingImage:
@@ -116,7 +119,7 @@ def my_proto_parser(data):
                             else:
                                 send(message.wxid1, '图片解析失败，进程已取消')
                                 inputting_image_status.inputting = 0
-                        elif search_result := re.search(r'^删除(\d{8}$)', message.content):
+                        elif search_result := re.search(r'^删除(\d{8}) ?', message.content):
                             file_id = search_result.group(1)
                             file_name = delete_file_by_id(file_id)
                             if file_name:
@@ -127,10 +130,9 @@ def my_proto_parser(data):
                                     print(e)
                                     send(message.wxid1, f'删除文件时出错，请检查file.ini中的配置”')
 
-
                     elif message.wxid1 in GROUP_ID:
-                        if re.search(r'^\d{8}$', message.content):
-                            file_name = search_file_by_id(message.content)
+                        if search_result := re.search(r'^(\d{8}) ?$', message.content):
+                            file_name = search_file_by_id(search_result.group(1))
                             if file_name:
                                 try:
                                     send_file(message.wxid1, os.path.join(FILE_DIR_PATH, file_name))
@@ -175,16 +177,10 @@ def my_proto_parser(data):
                 if message.type == 49:
                     if message.file:
                         if message.wxid1 in ADMIN_ID or message.wxid1 in GROUP_ID:  # 管理员私发&任意群文件均视为有效
-                            def move_file():
-                                if_succeed = move_wechat_file(message.file)
-                                if if_succeed:
-                                    file_name = os.path.split(message.file)[1]
-                                    input_file_data_instance = InputFileData(file_name)
-                                    input_file_data_instance.output_func()
-                                    time.sleep(1)
-                                    send_file(GROUP_ID[0], os.path.join(DIR_PATH, '文件列表.txt'))
+                            result = download_file(message.file)
+                            if result:
+                                send_file(GROUP_ID[0], os.path.join(DIR_PATH, '文件列表.txt'))
 
-                            do_at_sometime(move_file, 10, countdown=True)
             # print("来源1:", message.wxid1)
             # print("来源2:", message.wxid2)
             # print("消息头:", message.head)
@@ -303,14 +299,14 @@ def send_file_list_txt():
     send_file(GROUP_ID[0], os.path.join(DIR_PATH, '文件列表.txt'))
 
 
-def send_msg_when(wxid: str, content: str, send_time: str):
-    """
-    定时发送微信消息
-    :param wxid: 对方的wxid
-    :param content: 内容
-    :param send_time: 形如'2020-08-07 17:17:10' ‘%Y-%m-%d %H:%M’的时间
-    """
-    do_at_sometime(lambda: send(wxid, content), send_time)
+# def send_msg_when(wxid: str, content: str, send_time: str):
+#     """
+#     定时发送微信消息
+#     :param wxid: 对方的wxid
+#     :param content: 内容
+#     :param send_time: 形如'2020-08-07 17:17:10' ‘%Y-%m-%d %H:%M’的时间
+#     """
+#     do_at_sometime(lambda: send(wxid, content), send_time)
 
 
 def log_in():
@@ -343,7 +339,6 @@ def image_decode(dat_path, dat_name):
     except Exception as e:
         print(e)
         return False
-
 
 
 if __name__ == '__main__':

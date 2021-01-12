@@ -79,12 +79,23 @@ class InputFileData:
     def output_func(self):
         date_count.update()
         id_str = date_count.date + "{0:02d}".format(date_count.num)
-        conf.set('file', id_str, self.file_name)
+        while True:
+            try:
+                conf.get('file', id_str)
+            except NoOptionError:
+                conf.set('file', id_str, self.file_name)
+                break
+            else:
+                date_count.num += 1
+                id_str = date_count.date + "{0:02d}".format(date_count.num)
+
         update_conf()
 
         conf_initial.read(ini_initial_path, encoding='utf-8')
         conf_initial.set('config', "date", date_count.date)
         conf_initial.set('config', "num", date_count.num_str)
+        with open(ini_initial_path, 'w', encoding='utf-8') as ini:
+            conf_initial.write(ini)
 
 
 if __name__ == '__main__':
