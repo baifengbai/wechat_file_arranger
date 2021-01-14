@@ -76,7 +76,7 @@ WSGI_APPLICATION = 'wechat_file_arranger.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'SDGS',
+        'NAME': 'sdgs',
         'USER': 'root',
         'PASSWORD': 'paulniubi',
         'HOST': 'localhost',
