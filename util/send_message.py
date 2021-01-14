@@ -7,7 +7,6 @@ from configparser import ConfigParser
 message_config = ConfigParser()
 message_config_path = 'util\\message_config.ini'
 message_config.read(message_config_path, encoding='utf-8')
-message_config.get('main', 'my_sender')
 
 my_sender = message_config.get('main', 'my_sender')  # 发件人邮箱账号
 my_pass = message_config.get('main', 'my_pass')  # 发件人邮箱stmp授权码

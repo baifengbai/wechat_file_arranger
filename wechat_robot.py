@@ -7,8 +7,8 @@ import os
 import re
 from loguru import logger
 
+from file_manage.models import WechatGroupFile
 from util.download_file import download_file
-# from util.func_apscheduler import do_at_sometime
 from util.input_file_data import InputFileData, search_file_by_id, delete_file_by_id
 
 # ------⭐以下内容需要自行配置⭐-----------↓
@@ -16,17 +16,19 @@ from util.input_file_data import InputFileData, search_file_by_id, delete_file_b
 # ------⭐以下内容需要自行配置⭐-----------↓
 
 # 微信掉线时是否发送警告邮件，如需使用该模块，需要在.\util\message_config.ini填写相关参数
+from util.secret_code import get_secret_time_code
+
 IF_SEND_WARNING_MESSAGE_WHEN_WECHAT_LOG_OUT = False
 
 # 是否接受图片，如需使用该功能，请参考https://blog.csdn.net/zhanglw882/article/details/110221075 来配置xor_value
-IF_RECEIVE_IMAGE = False
+IF_RECEIVE_IMAGE = True
 xor_value = 0x87
 
 # 管理员微信id
-ADMIN_ID = ["wxid_**********"]
+ADMIN_ID = ["wxid_k0jgmjjy1qqm12", 'wxid_oftjmj5649kd22']
 
 # 目标群群id
-GROUP_ID = ["**********@chatroom"]
+GROUP_ID = ["25522056057@chatroom"]
 
 # ------⭐以上内容需要自行配置⭐-----------↑
 # ------⭐以上内容需要自行配置⭐-----------↑
@@ -109,30 +111,31 @@ def my_proto_parser(data):
                     pass
                 else:
                     if message.wxid1 in ADMIN_ID:
-                        if inputting_image_status.inputting:
-                            result = inputting_image_status.input_name_and_then_parse(message.content)
-                            if result:
-                                input_file_data_instance = InputFileData(inputting_image_status.image_name + '.png')
-                                input_file_data_instance.output_func()
-                                time.sleep(1)
-                                send_file(GROUP_ID[0], os.path.join(DIR_PATH, '文件列表.txt'))
-                            else:
-                                send(message.wxid1, '图片解析失败，进程已取消')
-                                inputting_image_status.inputting = 0
-                        elif search_result := re.search(r'^删除(\d{8}) ?', message.content):
-                            file_id = search_result.group(1)
-                            file_name = delete_file_by_id(file_id)
-                            if file_name:
-                                try:
-                                    os.remove(os.path.join(FILE_DIR_PATH, file_name))
-                                    send(message.wxid1, f'已删除文件：{file_name}({file_id})”')
-                                except Exception as e:
-                                    print(e)
-                                    send(message.wxid1, f'删除文件时出错，请检查file.ini中的配置”')
+                        pass
+                        # if inputting_image_status.inputting:
+                        #     result = inputting_image_status.input_name_and_then_parse(message.content)
+                        #     if result:
+                        #         input_file_data_instance = InputFileData(inputting_image_status.image_name + '.png')
+                        #         input_file_data_instance.output_func()
+                        #         time.sleep(1)
+                        #         send_file(GROUP_ID[0], os.path.join(DIR_PATH, '文件列表.txt'))
+                        #     else:
+                        #         send(message.wxid1, '图片解析失败，进程已取消')
+                        #         inputting_image_status.inputting = 0
+                        # elif search_result := re.search(r'^删除(\d{8}) ?', message.content):
+                        #     file_id = search_result.group(1)
+                        #     file_name = delete_file_by_id(file_id)
+                        #     if file_name:
+                        #         try:
+                        #             os.remove(os.path.join(FILE_DIR_PATH, file_name))
+                        #             send(message.wxid1, f'已删除文件：{file_name}({file_id})”')
+                        #         except Exception as e:
+                        #             print(e)
+                        #             send(message.wxid1, f'删除文件时出错，请检查file.ini中的配置”')
 
                     elif message.wxid1 in GROUP_ID:
                         if search_result := re.search(r'^(\d{8}) ?$', message.content):
-                            file_name = search_file_by_id(search_result.group(1))
+                            file_name = WechatGroupFile.objects.get(search_result.group(1)).file_name
                             if file_name:
                                 try:
                                     send_file(message.wxid1, os.path.join(FILE_DIR_PATH, file_name))
@@ -141,8 +144,11 @@ def my_proto_parser(data):
                                     send(message.wxid1, '查询时出错')
                             else:
                                 send(message.wxid1, '没有找到这个文件')
+
                         if message.content in ['文件列表', '文件', '查询', '查询文件']:
-                            send_file(message.wxid1, os.path.join(DIR_PATH, '文件列表.txt'))
+                            # send_file(message.wxid1, os.path.join(DIR_PATH, '文件列表.txt'))
+                            secret_code = get_secret_time_code()
+                            send(message.wxid1, '该网址5分钟内有效：\n' + 'yx.laorange.top?s=' + secret_code)
 
             elif message.type == 3:
                 if IF_RECEIVE_IMAGE:
@@ -291,7 +297,10 @@ def send(wxid: str, content: str):
         spy.send_text(wxid, content)
 
 
-def send_file(wxid: str, file_path: str):
+def send_file(wxid: str, file_path: str, if_yx_file=False):
+    if if_yx_file:
+        wxid = GROUP_ID[0]
+        file_path = os.path.join(FILE_DIR_PATH, file_path)
     spy.send_file(wxid, file_path)
 
 
