@@ -1251,18 +1251,21 @@
             <thead>
             <tr>
                 <th><span>编号</span></th>
+                <th><span>创建时间</span></th>
                 <th><span>文件名</span></th>
+                <th><span>备注</span></th>
             </tr>
             </thead>
 
             {% for file in file_list %}
                 <tr>
-                    <td><span>{{ file.id }}</span></td>
-                    <td><a href='yx.laorange.top/file/?id={{ file.id }}'><span>{{ file.file_name }}</span></a></td>
+                    <td><span>{{ file.file_id }}</span></td>
+                    <td><span>{{ file.create_time }}</span></td>
+                    <td><a href='http://laorange.top/yx/file/send/?id={{ file.file_id }}'><span>{{ file.file_name }}</span></a></td>
+                    <td><span>{{ file.remark }}</span></td>
                 </tr>
             {% endfor %}
 
-            </tbody>
         </table>
     </figure>
 </div>

@@ -6,10 +6,20 @@ from django.shortcuts import render
 
 from file_manage.models import WechatGroupFile
 
-from util.secret_code import encrypt_aes_func, decrypt_aes_func
-from wechat_robot import send_file
+from util.secret_code import decrypt_aes_func  # encrypt_aes_func,
 
-delay_allowed = 300
+from wechat_func import GROUP_ID, FILE_DIR_PATH, send_file
+
+
+def send_file_yx(file_path: str, group_num: int):
+    if group_num >= len(GROUP_ID):
+        group_num = len(GROUP_ID) - 1
+    _to = GROUP_ID[group_num]
+    file_path = os.path.join(FILE_DIR_PATH, file_path)
+    send_file(_to, file_path)
+
+
+delay_allowed = 30000
 
 
 # Create your views here.
@@ -72,7 +82,22 @@ def verify_before_file_list_page(request):
             time_code = float(code_decrypted)
             delay = time_now - time_code
             if delay < delay_allowed:
-                return render(request, file_list_page)
+                file_list = WechatGroupFile.objects.all()
+                file_ls_output = []
+                if file_list:
+                    for file in file_list:
+                        file_ls_output.append({"file_id": file.file_id,
+                                               'create_time': file.create_time,
+                                               'file_name': file.file_name,
+                                               'remark': file.remark
+                                               })
+                else:
+                    file_ls_output = [{"file_id": '',
+                                       'create_time': '',
+                                       'file_name': '',
+                                       'remark': ''
+                                       }]
+                return render(request, 'yx/file_list.html', {"file_list": file_ls_output})
         except Exception as e:
             print(e)
             return render(request, 'yx/403.html')
@@ -81,17 +106,14 @@ def verify_before_file_list_page(request):
 
 
 def file_list_page(request):
-    file_list = WechatGroupFile.objects.all()
-    file_ls_output = []
-    for file in file_list:
-        file_ls_output.append({"id": file.id, "file_name": file.file_name})
-    render(request, 'yx/file_list.html', {"file_list": file_ls_output})
+    pass
 
 
 def send_file_by_id(request):
     if request.method == 'GET':
         file_id = request.GET.get("id")
-        file_info = WechatGroupFile.objects.get(id=file_id)
-        send_file('', file_info.file_name, if_yx_file=True)
-        render(request, 'yx/send_done.html')
-    render(request, 'yx/error.html')
+        file_info = WechatGroupFile.objects.get(file_id=file_id)
+        send_file_yx(file_info.file_name, 0)
+        return render(request, 'yx/send_done.html')
+    else:
+        return render(request, 'yx/error.html')
