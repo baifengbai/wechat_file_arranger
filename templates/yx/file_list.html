@@ -3,7 +3,7 @@
 <head>
     <meta charset='UTF-8'>
     <meta name='viewport' content='width=device-width initial-scale=1'>
-    <title>table</title>
+    <title>文件列表</title>
     <link href='https://fonts.loli.net/css?family=Open+Sans:400italic,700italic,700,400&subset=latin,latin-ext'
           rel='stylesheet' type='text/css'/>
     <style type='text/css'>html {
@@ -1244,8 +1244,17 @@
     </style>
 </head>
 <body class='typora-export os-windows'>
-<div id='write' class=''><h1><a name="文件列表" class="md-header-anchor"></a><span>文件列表</span></h1>
-    <p><span>使用方法：点击文件名后，后台将会在微信群中发送该文件。</span></p>
+<div id='write' class=''>
+    <h1><a name="文件列表" class="md-header-anchor"></a><span>文件列表</span></h1>
+    {% if not from %}
+    <p><span>使用方法：点击想要查看的文件名后，</span><strong><span>对应文件将会在群里发送。</span></strong></p>
+    <ul>
+        <li><strong><span>当您在群里主动查询过一次后，您将自动获得私聊查询的权限</span></strong></li>
+    </ul>
+    {% else %}
+    <p><span>使用方法：点击想要查看的文件名后，</span><strong><span>对应文件将会通过微信私聊发送给您</span></strong></p>
+    {% endif %}
+
     <figure>
         <table>
             <thead>
@@ -1257,14 +1266,25 @@
             </tr>
             </thead>
 
-            {% for file in file_list %}
-                <tr>
-                    <td><span>{{ file.file_id }}</span></td>
-                    <td><span>{{ file.create_time }}</span></td>
-                    <td><a href='http://laorange.top/yx/file/send/?id={{ file.file_id }}'><span>{{ file.file_name }}</span></a></td>
-                    <td><span>{{ file.remark }}</span></td>
-                </tr>
-            {% endfor %}
+            {% if not from %}
+                {% for file in file_list %}
+                    <tr>
+                        <td><span>{{ file.file_id }}</span></td>
+                        <td><span>{{ file.create_time }}</span></td>
+                        <td><a href='http://laorange.top/yx/file/send/?id={{ file.file_id }}&s={{ secret_code }}'><span>{{ file.file_name }}</span></a></td>
+                        <td><span>{{ file.remark }}</span></td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                {% for file in file_list %}
+                    <tr>
+                        <td><span>{{ file.file_id }}</span></td>
+                        <td><span>{{ file.create_time }}</span></td>
+                        <td><a href='http://laorange.top/yx/file/send/?id={{ file.file_id }}&t={{ from }}&s={{ secret_code }}'><span>{{ file.file_name }}</span></a></td>
+                        <td><span>{{ file.remark }}</span></td>
+                    </tr>
+                {% endfor %}
+            {% endif %}
 
         </table>
     </figure>

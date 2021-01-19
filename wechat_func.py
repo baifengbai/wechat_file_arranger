@@ -25,7 +25,7 @@ import django
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "wechat_file_arranger.settings")
 django.setup()
-from file_manage.models import WechatGroupFile, GroupMember
+from file_manage.models import WechatGroupFile, GroupMember, WechatFriendInfo
 
 # import win32event
 # import pywintypes
@@ -60,30 +60,12 @@ GROUP_ID = ["25522056057@chatroom"]
 # ------⭐以上内容需要自行配置⭐-----------↑
 
 groups = []
-WECHAT_PROFILE = r"D:\Documents\WeChat Files"
 my_response_queue = Queue()
 
 DIR_PATH = os.path.dirname(os.path.abspath(__file__))
 FILE_DIR_PATH = os.path.join(DIR_PATH, 'file')
 
 WECHAT_DIR_PATH = r"C:\Users\Administrator\Documents\WeChat Files"
-
-
-class InputtingImage:
-    def __init__(self):
-        self.inputting = 0
-        self.image_path = ''
-        self.image_name = ''
-
-    def start_input(self, image_path):
-        self.inputting = 1
-        self.image_path = image_path
-
-    def input_name(self, image_name):
-        self.image_name = image_name
-
-
-inputting_image_status = InputtingImage()
 
 
 def handle_response():
@@ -110,11 +92,19 @@ def handle_response():
                     _to = message.wxidTo.str  # 消息接收方
 
                     if _from.endswith("chatroom"):  # 如果在群聊中
-                        _from_group_member = message.content.str.split(':\n', 2)[0]
-                        content = message.content.str.split(':\n', 2)[-1]
+                        _from_group_member = message.content.str.split(':\n', 1)[0]
+                        content = message.content.str.split(':\n', 1)[-1]
+                        _nickname = ''
                     else:
                         _from_group_member = ''
                         content = message.content.str  # 消息内容
+                        _nickname = message.overview.split(' : ')[0]
+                        if _nickname:
+                            if WechatFriendInfo.objects.filter(wx_id=_from):
+                                WechatFriendInfo.objects.filter(wx_id=_from).update(nickname=_nickname)
+                            else:
+                                WechatFriendInfo.objects.create(wx_id=_from, nickname=_nickname)
+
 
                     image_overview_size = message.imageOverview.imageSize  # 图片缩略图大小
                     image_overview_bytes = message.imageOverview.imageBytes  # 图片缩略图数据
@@ -130,29 +120,45 @@ def handle_response():
                             spy.send_text("filehelper", "Hello PyWeChatSpy3.0\n" + content)
 
                         else:
-                            if _from in ADMIN_ID:
-                                if content in ['文件列表', '文件', '查询', '查询文件']:
-                                    send_file_list_link(_from)
-                                elif content in ['管理', 'manage', 'gl', 'yx']:
-                                    send_text(_from, 'http://yx.laorange.top/admin/')
+                            # 来自个人
+                            if not _from.endswith('chatroom'):
+                                if _from in ADMIN_ID:
+                                    if content in ['管理', 'manage', 'gl', 'yx', 'GL']:
+                                        send_text(_from, 'http://yx.laorange.top/admin/')
+                                    elif content in ['上传', 'upload', 'sc', 'Sc', 'SC']:
+                                        secret_code = get_secret_time_code()
+                                        send_text(_from, 'http://yx.laorange.top/upload/?s=' + secret_code)
 
-                            elif _from in GROUP_ID:
-                                if content in ['文件列表', '文件', '查询', '查询文件']:
-                                    send_file_list_link(_from)
-                                    try:
-                                        GroupMember.objects.create(wx_id=_from_group_member)
-                                    except:
-                                        pass
+                                if group_member_info := GroupMember.objects.filter(wx_id=_from):
+                                    if _nickname:
+                                        group_member_info.update(nickname=_nickname)
+                                    if content in ['文件列表', '文件', '查询', '查询文件']:
+                                        secret_code = get_secret_time_code()
+                                        spy.send_text(_from, '网址5分钟内有效：\n' + 'yx.laorange.top/?s=' +
+                                                      secret_code + f'&f={_from}')
+
+                            # 来自群聊
+                            else:
+                                if _from in GROUP_ID:
+                                    if content in ['文件列表', '文件', '查询', '查询文件']:
+                                        send_file_list_link(_from)
+                                        try:
+                                            GroupMember.objects.create(wx_id=_from_group_member)
+                                        except:
+                                            pass
 
                     # TODO: 图片消息
                     elif _type == 3:
                         file_path = message.file
                         print(_from, _to, file_path)
-                        file_path = os.path.join(WECHAT_PROFILE, file_path)
+                        file_path = os.path.join(WECHAT_DIR_PATH, file_path)
                         time.sleep(10)
                         file_name_time_now = time.ctime().replace(' ', '_') + '.jpg'
-                        spy.decrypt_image(file_path, os.path.join(FILE_DIR_PATH, file_name_time_now))
-                        WechatGroupFile.objects.create(file_name=file_name_time_now)
+                        result = image_decode(file_path, file_name_time_now)
+                        if result:
+                            WechatGroupFile.objects.create(file_name=file_name_time_now)
+                        else:
+                            print('图片解析失败')
 
                     # TODO: 视频消息
                     elif _type == 43:
@@ -271,6 +277,27 @@ def send_text(wxid: str, text: str, at_wxid: str = "", port: int = 0):
 
 def send_file(wxid: str, file_path: str, port: int = 0):
     spy.send_file(wxid, file_path, port)
+
+
+def image_decode(dat_path, output_file_name):
+    global xor_value
+    # dat_dir_path, dat_name = os.path.split(dat_path)[0], os.path.split(dat_path)[1]
+    # target_path = r'F:\Users\Tencent Files\WeChat Files\image'
+    try:
+        target_path = FILE_DIR_PATH
+        with open(dat_path, "rb") as dat_read:
+            if not os.path.exists(target_path):
+                os.makedirs(target_path)
+            out = target_path + "\\" + output_file_name + ".png"
+            with open(out, "wb") as png_write:
+                for now in dat_read:
+                    for nowByte in now:
+                        newByte = nowByte ^ xor_value
+                        png_write.write(bytes([newByte]))
+        return True
+    except Exception as e:
+        print(e)
+        return False
 
 
 if not os.path.exists('occupy.pid'):

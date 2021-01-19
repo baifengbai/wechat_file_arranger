@@ -18,11 +18,26 @@ class WechatGroupFile(models.Model):
 
 class GroupMember(models.Model):
     wx_id = models.CharField('微信号', max_length=64, null=False, primary_key=True)
+    nickname = models.CharField('昵称或备注', max_length=64, default='')
     create_time = models.DateTimeField('注册时间', auto_now_add=True)
+    update_time = models.DateTimeField('更新时间', auto_now=True)
 
     class Meta:
         verbose_name = '微信-群文件-用户信息'
         verbose_name_plural = '微信-群文件-用户列表'
 
     def __str__(self):
-        return self.wx_id
+        return self.nickname if self.nickname else self.wx_id
+
+
+class WechatFriendInfo(models.Model):
+    wx_id = models.CharField('微信号', max_length=64, null=False, primary_key=True)
+    nickname = models.CharField('昵称或备注', max_length=64, default='')
+    update_time = models.DateTimeField('信息更新时间', auto_now=True)
+
+    class Meta:
+        verbose_name = '微信-好友信息'
+        verbose_name_plural = '微信-好友列表'
+
+    def __str__(self):
+        return self.nickname if self.nickname else self.wx_id

@@ -5,19 +5,10 @@
 	<meta name="viewport" content="width=device-width,initial-scale=1">
     <link rel="Shortcut Icon" href="laorange.ico" type="image/x-icon">
 	<meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>文件上传页面</title>
+    <title>上传成功</title>
 </head>
 <body>
-    <form enctype="multipart/form-data" class="login-form" action="/yx/file/upload/uploading/" method="post">
-        {% csrf_token %}
-        <h1 id="project_name">文件上传</h1>
-        <br>
-        <input type="file" name="myfile" required="required" placeholder="选择想要上传的文件" style="margin-top: 20px;"/>
-            <br/>
-        <input type="text" name="remark" placeholder="自定义文件名(选填)"/>
-            <br/>
-        <input type="submit" value="上传"/>
-    </form>
+    <h1 id="project_name">上传成功</h1>
     <style>
         * {
             margin: 0;
