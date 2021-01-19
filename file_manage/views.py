@@ -37,6 +37,8 @@ def verify_before_upload_file(request):
             delay = time_now - time_code
             if delay < DELAY_ALLOWED:
                 return render(request, 'yx/upload_file.html')
+            else:
+                return render(request, 'yx/403.html')
         except Exception as e:
             print(e)
             return HttpResponse('error')
@@ -109,6 +111,8 @@ def verify_before_file_list_page(request):
                                        }]
                 return render(request, 'yx/file_list.html',
                               {"file_list": file_ls_output, 'from': from_whom, 'secret_code': secret_code})
+            else:
+                return render(request, 'yx/403.html')
         except Exception as e:
             print(e)
             return render(request, 'yx/403.html')
