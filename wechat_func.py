@@ -158,10 +158,13 @@ def handle_response():
                         if GroupMember.objects.filter(wx_id=_from):
                             file_path = os.path.join(WECHAT_DIR_PATH, file_path)
                             time.sleep(10)
-                            file_name_time_now = time.ctime().replace(' ', '_').replace(":", '_')
+                            file_name_time_now = time.ctime().replace(' ', '_').replace(":", '_') + '.jpg'
                             result = image_decode(file_path, file_name_time_now)
                             if result:
-                                WechatGroupFile.objects.create(file_name=file_name_time_now+'.jpg')
+                                uploader = _from
+                                WechatGroupFile.objects.create(file_name=file_name_time_now, uploader=uploader)
+                                send_text(GROUP_ID[0], "新增群文件", at_wxid=uploader)
+                                send_file(GROUP_ID[0], os.path.join(FILE_DIR_PATH, file_name_time_now))
                             else:
                                 print('图片解析失败')
 
@@ -294,7 +297,7 @@ def image_decode(dat_path, output_file_name):
         with open(dat_path, "rb") as dat_read:
             if not os.path.exists(target_path):
                 os.makedirs(target_path)
-            out = target_path + "\\" + output_file_name + ".jpg"
+            out = target_path + "\\" + output_file_name
             with open(out, "wb") as png_write:
                 for now in dat_read:
                     for nowByte in now:

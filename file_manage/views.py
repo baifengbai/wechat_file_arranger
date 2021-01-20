@@ -63,7 +63,7 @@ def upload_file(request):
                         destination.write(chunk)
 
                     close_old_connections()
-                    WechatGroupFile.objects.create(file_name=my_file.name, remark=remark)
+                    WechatGroupFile.objects.create(file_name=my_file.name, remark=remark, uploader='uploader')
 
                 return render(request, 'yx/upload_done.html')
             else:

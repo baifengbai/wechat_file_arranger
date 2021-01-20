@@ -7,6 +7,7 @@ class WechatGroupFile(models.Model):
     create_time = models.DateTimeField('创建时间', auto_now_add=True)
     file_name = models.CharField('文件名', max_length=64, null=False)
     remark = models.CharField('备注', max_length=64, null=True, default='')
+    uploader = models.CharField('上传者', max_length=64, default='')
 
     class Meta:
         verbose_name = '微信-群文件信息'
