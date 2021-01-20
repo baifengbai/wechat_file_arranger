@@ -154,14 +154,16 @@ def handle_response():
                     elif _type == 3:
                         file_path = message.file
                         print(_from, _to, file_path)
-                        file_path = os.path.join(WECHAT_DIR_PATH, file_path)
-                        time.sleep(10)
-                        file_name_time_now = time.ctime().replace(' ', '_') + '.jpg'
-                        result = image_decode(file_path, file_name_time_now)
-                        if result:
-                            WechatGroupFile.objects.create(file_name=file_name_time_now)
-                        else:
-                            print('图片解析失败')
+                        close_old_connections()
+                        if GroupMember.objects.filter(wx_id=_from):
+                            file_path = os.path.join(WECHAT_DIR_PATH, file_path)
+                            time.sleep(10)
+                            file_name_time_now = time.ctime().replace(' ', '_').replace(":", '_')
+                            result = image_decode(file_path, file_name_time_now)
+                            if result:
+                                WechatGroupFile.objects.create(file_name=file_name_time_now+'.jpg')
+                            else:
+                                print('图片解析失败')
 
                     # TODO: 视频消息
                     elif _type == 43:
@@ -292,7 +294,7 @@ def image_decode(dat_path, output_file_name):
         with open(dat_path, "rb") as dat_read:
             if not os.path.exists(target_path):
                 os.makedirs(target_path)
-            out = target_path + "\\" + output_file_name + ".png"
+            out = target_path + "\\" + output_file_name + ".jpg"
             with open(out, "wb") as png_write:
                 for now in dat_read:
                     for nowByte in now:
@@ -306,8 +308,10 @@ def image_decode(dat_path, output_file_name):
 
 if not os.path.exists('occupy.pid'):
     log_in_wechat()
-with open('occupy.pid', 'wt') as occ:
-    occ.write('occupy')
+    with open('occupy.pid', 'wt') as occ:
+        occ.write('occupy')
+else:
+    print('检测到occupy.pid，请在运行微信前删除该文件')
 
 if __name__ == '__main__':
     log_in_wechat()
