@@ -13,7 +13,7 @@ class WechatGroupFile(models.Model):
         verbose_name_plural = '微信-群文件列表'
 
     def __str__(self):
-        return self.file_name
+        return self.remark if self.remark else self.file_name
 
 
 class GroupMember(models.Model):
