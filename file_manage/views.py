@@ -2,6 +2,7 @@ import os
 import time
 from traceback import print_exc
 
+from django.db import close_old_connections
 from django.http import HttpResponse
 from django.shortcuts import render
 from wechat_file_arranger.settings import BASE_DIR
@@ -61,9 +62,10 @@ def upload_file(request):
                     for chunk in my_file.chunks():  # 分块写入文件
                         destination.write(chunk)
 
+                    close_old_connections()
                     WechatGroupFile.objects.create(file_name=my_file.name, remark=remark)
 
-                return render(request, 'yx/send_done.html')
+                return render(request, 'yx/upload_done.html')
             else:
                 return render(request, 'yx/file_too_large.html')
 
@@ -94,6 +96,7 @@ def verify_before_file_list_page(request):
             time_code = float(code_decrypted)
             delay = time_now - time_code
             if delay < DELAY_ALLOWED:
+                close_old_connections()
                 file_list = WechatGroupFile.objects.all()
                 file_ls_output = []
                 if file_list:
@@ -139,13 +142,13 @@ def send_file_by_id(request):
                 if delay > DELAY_ALLOWED:
                     return render(request, 'yx/403.html')
 
+            close_old_connections()
             file_info = WechatGroupFile.objects.get(file_id=file_id)
             if _to == '':
                 _to = GROUP_ID[0]
             file_path = os.path.join(FILE_DIR_PATH, file_info.file_name)
             send_file(_to, file_path)
-
-            return render(request, 'yx/send_done.html')
+            return render(request, 'yx/send_done.html', {'secret_code': secret_code})
         except Exception as e:
             print(e)
             return render(request, 'yx/error.html')

@@ -22,6 +22,7 @@ from util.download_file import download_file
 from util.secret_code import get_secret_time_code
 
 import django
+from django.db import close_old_connections
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "wechat_file_arranger.settings")
 django.setup()
@@ -100,11 +101,11 @@ def handle_response():
                         content = message.content.str  # 消息内容
                         _nickname = message.overview.split(' : ')[0]
                         if _nickname:
+                            close_old_connections()
                             if WechatFriendInfo.objects.filter(wx_id=_from):
                                 WechatFriendInfo.objects.filter(wx_id=_from).update(nickname=_nickname)
                             else:
                                 WechatFriendInfo.objects.create(wx_id=_from, nickname=_nickname)
-
 
                     image_overview_size = message.imageOverview.imageSize  # 图片缩略图大小
                     image_overview_bytes = message.imageOverview.imageBytes  # 图片缩略图数据
@@ -129,12 +130,13 @@ def handle_response():
                                         secret_code = get_secret_time_code()
                                         send_text(_from, 'http://yx.laorange.top/upload/?s=' + secret_code)
 
+                                close_old_connections()
                                 if group_member_info := GroupMember.objects.filter(wx_id=_from):
                                     if _nickname:
                                         group_member_info.update(nickname=_nickname)
                                     if content in ['文件列表', '文件', '查询', '查询文件']:
                                         secret_code = get_secret_time_code()
-                                        spy.send_text(_from, '网址5分钟内有效：\n' + 'yx.laorange.top/?s=' +
+                                        spy.send_text(_from, '网址10分钟内有效：\n' + 'yx.laorange.top/?s=' +
                                                       secret_code + f'&f={_from}')
 
                             # 来自群聊
@@ -143,6 +145,7 @@ def handle_response():
                                     if content in ['文件列表', '文件', '查询', '查询文件']:
                                         send_file_list_link(_from)
                                         try:
+                                            close_old_connections()
                                             GroupMember.objects.create(wx_id=_from_group_member)
                                         except:
                                             pass
@@ -176,6 +179,7 @@ def handle_response():
                             if _from in ADMIN_ID or _from in GROUP_ID:  # 管理员私发&任意群文件均视为有效
                                 result = download_file(os.path.join(WECHAT_DIR_PATH, message.file))
                                 if result:
+                                    close_old_connections()
                                     WechatGroupFile.objects.create(file_name=os.path.split(message.file)[1])
                                     send_file_list_link(_from)
 
@@ -250,7 +254,7 @@ def handle_response():
 
 def send_file_list_link(wxid):
     secret_code = get_secret_time_code()
-    spy.send_text(wxid, '网址5分钟内有效：\n' + 'yx.laorange.top/?s=' + secret_code)
+    spy.send_text(wxid, '网址10分钟内有效：\n' + 'yx.laorange.top/?s=' + secret_code)
 
 
 spy = WeChatSpy(response_queue=my_response_queue, key="", logger=logger)
