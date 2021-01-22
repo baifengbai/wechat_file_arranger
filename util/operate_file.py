@@ -1,50 +1,70 @@
+import binascii
+
 import time
-
-from util.mysql_util import *
-
-
-def get_standard_time(t_delay=0):
-    return time.strftime('%Y%m%d', time.localtime(time.time() + t_delay))[2:]
+import os
+import shutil
+from loguru import logger
+import traceback
 
 
-class DateCount:
-    def __init__(self):
-        self.date = get_standard_time()
-        self.num_str = 0
-        self.num = int(self.num_str)
-
-    def update(self):
-        self.date = get_standard_time()
-        self.num += 1
-        self.num_str = str(self.num)
-
-
-date_count = DateCount()
+def parse_dat_to_xor_code(dat_path: str) -> int:
+    try:
+        with open(dat_path, 'rb') as shit:
+            shi = shit.read(2)
+            cooked_shi = binascii.b2a_hex(shi).decode('UTF-8')
+            return eval('0x' + hex(eval('0x' + cooked_shi) ^ 0xFFD8)[-2:])
+    except Exception as e:
+        print(e)
+        return 0
 
 
-class InputFileData:
-    global date_count
+PROJECT_DIR_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-    def __init__(self, file_name: str):
-        self.file_name = file_name
 
-    def output_func(self):
-        date_count.update()
-        id_str = date_count.date + "{0:02d}".format(date_count.num)
-        while True:
-            try:
-                file_name = get_file_name_by_id(id_str)
-                assert file_name != ''
-            except:
-                add_file_to_mysql(id_str, self.file_name)
-                break
-            else:
-                date_count.num += 1
-                id_str = date_count.date + "{0:02d}".format(date_count.num)
+def move_wechat_file(file):
+    try:
+        if not os.path.isfile(file):
+            # print("%s not exist!" % file)
+            return False
+        else:
+            fpath, fname = os.path.split(file)  # 分离文件名和路径
+            dst_path = os.path.join(os.path.join(PROJECT_DIR_PATH, r'file\yx'))
+            if not os.path.exists(dst_path):
+                os.makedirs(dst_path)  # 创建路径
+            shutil.move(file, os.path.join(dst_path, fname))  # 移动文件
+            logger.info("move %s -> %s" % (file, os.path.join(dst_path, fname)))
+            return True
+    except Exception as e:
+        traceback.print_exc()
+        logger.error(e)
+        return False
+
+
+if_downloading_file = 0
+
+
+def download_file(file_path):
+    global if_downloading_file
+    if_succeed = False
+    try_times = 0
+    while if_downloading_file:
+        time.sleep(2)
+
+    if_downloading_file = 1
+    while not if_succeed and try_times <= 30:
+        if_succeed = move_wechat_file(file_path)
+        time.sleep(2)
+    if_downloading_file = 0
+
+    if if_succeed:
+        return True
+    else:
+        return False
 
 
 if __name__ == '__main__':
-    # data = DataInputFile()
-    # print(data.output_func())
-    data = InputFileData("测试文件")
-    data.output_func()
+    dir_path = r'C:\Users\Administrator\Documents\WeChat Files\wxid_641ng9if378b22\FileStorage\Image\2021-01'
+    name = 'e486fd828991955ea48bfe2bbeaf567d.dat'
+    xor_code = parse_dat_to_xor_code(os.path.join(dir_path, name))
+    print(xor_code)
+    print(hex(int(time.time()*100))[2:])

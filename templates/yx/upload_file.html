@@ -11,6 +11,7 @@
     <form enctype="multipart/form-data" class="login-form" action="/yx/file/upload/uploading/" method="post">
         {% csrf_token %}
         <h1 id="project_name">文件上传</h1>
+        <input type="hidden" id="from_whom" name="from_whom" value="{{ from_whom }}">
         <br>
         <input type="file" name="myfile" required="required" placeholder="选择想要上传的文件" style="margin-top: 20px;"/>
             <br/>

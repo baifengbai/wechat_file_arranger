@@ -1248,9 +1248,6 @@
     <h1><a name="文件列表" class="md-header-anchor"></a><span>文件列表</span></h1>
     {% if not from %}
     <p><span>使用方法：点击想要查看的文件名后，</span><strong><span>对应文件将会在群里发送。</span></strong></p>
-    <ul>
-        <li><strong><span>当您在群里主动查询过一次后，您将自动获得私聊查询的权限</span></strong></li>
-    </ul>
     {% else %}
     <p><span>使用方法：点击想要查看的文件名后，</span><strong><span>对应文件将会通过微信私聊发送给您</span></strong></p>
     {% endif %}
@@ -1262,23 +1259,26 @@
                 <th><span>文件名</span></th>
                 <th><span>备注</span></th>
                 <th><span>创建时间</span></th>
+                <th><span>上传者</span></th>
             </tr>
             </thead>
 
             {% if not from %}
                 {% for file in file_list reversed %}
                     <tr>
-                        <td><a href='http://laorange.top/yx/file/send/?id={{ file.file_id }}&s={{ secret_code }}'><span>{{ file.file_name|slice:"15" }}</span></a></td>
+                        <td><a href='http://laorange.top/yx/file/send/?id={{ file.file_id }}&s={{ secret_code }}'><span>{{ file.file_name|slice:"16" }}</span></a></td>
                         <td><span>{{ file.remark }}</span></td>
                         <td><span>{{ file.create_time|date:'Y-n-d H:i' }}</span></td>
+                        <td><span>{{ file.uploader_nickname }}</span></td>
                     </tr>
                 {% endfor %}
             {% else %}
                 {% for file in file_list reversed %}
                     <tr>
-                        <td><a href='http://laorange.top/yx/file/send/?id={{ file.file_id }}&t={{ from }}&s={{ secret_code }}'><span>{{ file.file_name|slice:"15" }}</span></a></td>
+                        <td><a href='http://laorange.top/yx/file/send/?id={{ file.file_id }}&t={{ from }}&s={{ secret_code }}'><span>{{ file.file_name|slice:"16" }}</span></a></td>
                         <td><span>{{ file.remark }}</span></td>
                         <td><span>{{ file.create_time|date:'Y-n-d H:i' }}</span></td>
+                        <td><span>{{ file.uploader_nickname }}</span></td>
                     </tr>
                 {% endfor %}
             {% endif %}

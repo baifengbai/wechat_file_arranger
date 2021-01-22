@@ -6,8 +6,10 @@ class WechatGroupFile(models.Model):
     file_id = models.AutoField('编号', primary_key=True)
     create_time = models.DateTimeField('创建时间', auto_now_add=True)
     file_name = models.CharField('文件名', max_length=64, null=False)
-    remark = models.CharField('备注', max_length=64, null=True, default='')
+    remark = models.CharField('备注', max_length=64, default='')
     uploader = models.CharField('上传者', max_length=64, default='')
+    uploader_nickname = models.CharField('上传者昵称', max_length=64, default='')
+    watch_times = models.IntegerField('查看次数', default=0)
 
     class Meta:
         verbose_name = '微信-群文件信息'
