@@ -44,3 +44,16 @@ class WechatFriendInfo(models.Model):
 
     def __str__(self):
         return self.nickname if self.nickname else self.wx_id
+
+
+class Administrator(models.Model):
+    wx_id = models.CharField('微信号', max_length=64, null=False, primary_key=True)
+    remark = models.CharField('备注', max_length=64, default='')
+    update_time = models.DateTimeField('信息更新时间', auto_now=True)
+
+    class Meta:
+        verbose_name = '微信文件管理-管理员'
+        verbose_name_plural = '微信文件管理-管理员列表'
+
+    def __str__(self):
+        return self.remark if self.remark else self.wx_id

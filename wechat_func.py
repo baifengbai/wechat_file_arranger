@@ -25,18 +25,7 @@ from django.db import close_old_connections
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "wechat_file_arranger.settings")
 django.setup()
-from file_manage.models import WechatGroupFile, GroupMember, WechatFriendInfo
-
-# import win32event
-# import pywintypes
-# import win32api
-# from winerror import ERROR_ALREADY_EXISTS
-
-# mutexname = "DEMO"  # 互斥体命名
-# mutex = win32event.CreateMutex(None, False, mutexname)
-# if win32api.GetLastError() == ERROR_ALREADY_EXISTS:
-#     print('程序已启动')
-#     exit(0)
+from file_manage.models import WechatGroupFile, GroupMember, WechatFriendInfo, Administrator
 
 # ------⭐以下内容需要自行配置⭐-----------↓
 # ------⭐以下内容需要自行配置⭐-----------↓
@@ -46,7 +35,7 @@ from file_manage.models import WechatGroupFile, GroupMember, WechatFriendInfo
 IF_SEND_WARNING_MESSAGE_WHEN_WECHAT_LOG_OUT = False
 
 # TODO:管理员微信id
-ADMIN_ID = ["wxid_k0jgmjjy1qqm12", 'wxid_oftjmj5649kd22', "wxid_kus5f4xdn5ek22"]
+# ADMIN_ID = ["wxid_k0jgmjjy1qqm12", 'wxid_oftjmj5649kd22', "wxid_kus5f4xdn5ek22"]
 
 # TODO:目标群群id
 GROUP_ID = ["25522056057@chatroom"]
@@ -79,7 +68,9 @@ def handle_response():
             elif data.type == WECHAT_LOGIN:  # 微信登录
                 spy.get_account_details()  # 获取登录账号详情
             elif data.type == WECHAT_LOGOUT:  # 微信登出
-                pass
+                if IF_SEND_WARNING_MESSAGE_WHEN_WECHAT_LOG_OUT:
+                    from util.send_message import send_mail
+                    send_mail()
             elif data.type == CHAT_MESSAGE:  # 微信消息
                 chat_message = spy_pb2.ChatMessage()
                 chat_message.ParseFromString(data.bytes)
@@ -120,7 +111,7 @@ def handle_response():
                         else:
                             # 来自个人
                             if not _from.endswith('chatroom'):
-                                if _from in ADMIN_ID:
+                                if Administrator.objects.filter(wx_id=_from):
                                     if content in ['管理', 'manage', 'gl', 'yx', 'GL']:
                                         send_text(_from, 'http://yx.laorange.top/admin/')
 
@@ -138,6 +129,8 @@ def handle_response():
                                 else:
                                     if not WechatFriendInfo.objects.filter(wx_id=_from) and _nickname:
                                         WechatFriendInfo.objects.create(wx_id=_from, nickname=_nickname)
+                                        if GroupMember.objects.filter(wx_id=_from):
+                                            GroupMember.objects.filter(wx_id=_from).update(nickname=_nickname)
 
                                 if GroupMember.objects.filter(wx_id=_from):
                                     if content in ['文件列表', '文件', '查询', '查询文件']:
