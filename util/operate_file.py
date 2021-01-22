@@ -1,4 +1,4 @@
-import binascii
+﻿import binascii
 
 import time
 import os
@@ -63,8 +63,8 @@ def download_file(file_path):
 
 
 if __name__ == '__main__':
-    dir_path = r'C:\Users\Administrator\Documents\WeChat Files\wxid_641ng9if378b22\FileStorage\Image\2021-01'
-    name = 'e486fd828991955ea48bfe2bbeaf567d.dat'
+    dir_path = r'C:\Users\Administrator\Documents\WeChat Files\wxid_**************\FileStorage\Image\2021-01'
+    name = 'e486fd828991955ea48bfe2bbeaf****.dat'
     xor_code = parse_dat_to_xor_code(os.path.join(dir_path, name))
     print(xor_code)
     print(hex(int(time.time()*100))[2:])
