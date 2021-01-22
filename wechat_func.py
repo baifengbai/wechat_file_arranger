@@ -34,9 +34,6 @@ from file_manage.models import WechatGroupFile, GroupMember, WechatFriendInfo, A
 # TODO:微信掉线时是否发送警告邮件，如需使用该模块，需要在.\util\message_config.ini填写相关参数
 IF_SEND_WARNING_MESSAGE_WHEN_WECHAT_LOG_OUT = False
 
-# TODO:管理员微信id
-# ADMIN_ID = ["wxid_k0jgmjjy1qqm12", 'wxid_oftjmj5649kd22', "wxid_kus5f4xdn5ek22"]
-
 # TODO:目标群群id
 GROUP_ID = ["25522056057@chatroom"]
 
@@ -181,45 +178,46 @@ def handle_response():
                     elif _type == 3:
                         file_path = message.file
                         print(_from, _to, file_path)
-                        send_text(_from, '已收到您发送的图片，正在解析，请稍后...')
+                        if not _from.endswith('chatroom'):
+                            send_text(_from, '已收到您发送的图片，正在解析，请稍后...')
 
-                        close_old_connections()
-                        if GroupMember.objects.filter(wx_id=_from):
-                            try:
-                                friend_nickname = WechatFriendInfo.objects.get(wx_id=_from).nickname
-                            except Exception as e:
-                                print(e)
-                                send_text(_from, '您的私聊查询功能尚未激活。解决办法：请向我发送”激活“')
-                            else:
-                                file_path = os.path.join(WECHAT_DIR_PATH, file_path)
-                                # 图片命名为p+当前时间戳(精确到毫秒)的十六进制表示
-                                file_name_time_now = 'p' + hex(int(time.time()*100))[2:] + '.jpg'
-
-                                try_times = 0
-                                result = False
-                                while not result and try_times < 10:
-                                    time.sleep(3)
-                                    result = image_decode(file_path, file_name_time_now)
-                                if result:
-                                    uploader = _from
-                                    WechatGroupFile.objects.create(file_name=file_name_time_now, uploader=uploader,
-                                                                   uploader_nickname=friend_nickname)
-                                    send_file(GROUP_ID[0], os.path.join(FILE_DIR_PATH, file_name_time_now))
-
-                                    time_gt = datetime.datetime.now() - datetime.timedelta(minutes=10)
-                                    file_no_remark_info = WechatGroupFile.objects.filter(
-                                        uploader=_from, remark='', create_time__gt=time_gt)
-                                    file_no_remark_amount = len(file_no_remark_info)
-                                    send_text(_from, f"图片上传成功！您在10分钟内上传了{file_no_remark_amount}个文件/图片，" +
-                                              "若仍有图片/文件需要上传请继续发送；若已全部发送完毕，请输入这" +
-                                              f"{'张图片的' if file_no_remark_amount == 1 else '些文件/图片的统一'}备注：" +
-                                              "如果不需要备注，请发送空格或”取消“")
+                            close_old_connections()
+                            if GroupMember.objects.filter(wx_id=_from):
+                                try:
+                                    friend_nickname = WechatFriendInfo.objects.get(wx_id=_from).nickname
+                                except Exception as e:
+                                    print(e)
+                                    send_text(_from, '您的私聊查询功能尚未激活。解决办法：请向我发送”激活“')
                                 else:
-                                    send_text(_from, '图片解析失败')
+                                    file_path = os.path.join(WECHAT_DIR_PATH, file_path)
+                                    # 图片命名为p+当前时间戳(精确到毫秒)的十六进制表示
+                                    file_name_time_now = 'p' + hex(int(time.time()*100))[2:] + '.jpg'
 
-                        # 后期取消该提示
-                        else:
-                            send_text(_from, '激活失败，未在群成员列表中找到您的信息。请在群里发言，或联系管理员')
+                                    try_times = 0
+                                    result = False
+                                    while not result and try_times < 10:
+                                        time.sleep(3)
+                                        result = image_decode(file_path, file_name_time_now)
+                                    if result:
+                                        uploader = _from
+                                        WechatGroupFile.objects.create(file_name=file_name_time_now, uploader=uploader,
+                                                                       uploader_nickname=friend_nickname)
+                                        send_file(GROUP_ID[0], os.path.join(FILE_DIR_PATH, file_name_time_now))
+
+                                        time_gt = datetime.datetime.now() - datetime.timedelta(minutes=10)
+                                        file_no_remark_info = WechatGroupFile.objects.filter(
+                                            uploader=_from, remark='', create_time__gt=time_gt)
+                                        file_no_remark_amount = len(file_no_remark_info)
+                                        send_text(_from, f"图片上传成功！\n您在10分钟内上传了{file_no_remark_amount}个文件/图片，" +
+                                                  "若仍有图片/文件需要上传请继续发送；\n若已全部发送完毕，请输入这" +
+                                                  f"{'张图片的' if file_no_remark_amount == 1 else '些文件/图片的统一'}备注：" +
+                                                  "\n(如果不需要备注，请发送空格或”取消“)")
+                                    else:
+                                        send_text(_from, '图片解析失败')
+
+                            # 后期取消该提示
+                            else:
+                                send_text(_from, '很抱歉，未在群成员列表中找到您的信息，您的请求已被取消。请先在群里发言')
 
                     # TODO: 视频消息
                     elif _type == 43:
@@ -230,7 +228,7 @@ def handle_response():
                     if _type == 49:
                         print(_from, content, message.file)
                         if message.file:
-                            # v1.0.3 增加限制：只能通过私聊发送
+                            # v2.0.0 增加限制：只能通过私聊发送
                             if not _from.endswith('chatroom'):
                                 close_old_connections()
                                 if GroupMember.objects.filter(wx_id=_from):
@@ -249,16 +247,16 @@ def handle_response():
                                             file_no_remark_info = WechatGroupFile.objects.filter(
                                                 uploader=_from, remark='', create_time__gt=time_gt)
                                             file_no_remark_amount = len(file_no_remark_info)
-                                            send_text(_from, f"文件上传成功！您在10分钟内上传了{file_no_remark_amount}个文件/图片，" +
-                                                      "若仍有图片/文件需要上传请继续发送；若已全部发送完毕，请输入这" +
+                                            send_text(_from, f"文件上传成功！\n您在10分钟内上传了{file_no_remark_amount}个文件/图片，" +
+                                                      "若仍有图片/文件需要上传请继续发送；\n若已全部发送完毕，请输入这" +
                                                       f"{'个文件的' if file_no_remark_amount == 1 else '些文件/图片的统一'}备注：" +
-                                                      "如果不需要备注，请发送空格或”取消“")
+                                                      "\n(如果不需要备注，请发送空格或”取消“)")
                                         else:
-                                            send_text(_from, "文件上传失败，请稍后重试或通过网页上传（向我发送“上传”可获取上传网页的网址）")
+                                            send_text(_from, "文件上传失败，请稍后重试，或通过网页上传（向我发送“上传”可获取上传网页的网址）")
 
                                 # 后期取消该提示
                                 else:
-                                    send_text(_from, '激活失败，未在群成员列表中找到您的信息。请在群里发言，或联系管理员')
+                                    send_text(_from, '很抱歉，未在群成员列表中找到您的信息，您的请求已被取消。请先在群里发言')
 
             elif data.type == ACCOUNT_DETAILS:  # 登录账号详情
                 if data.code:
@@ -357,7 +355,12 @@ def send_text(wxid: str, text: str, at_wxid: str = "", port: int = 0):
 
 
 def send_file(wxid: str, file_path: str, port: int = 0):
-    spy.send_file(wxid, file_path, port)
+    try:
+        spy.send_file(wxid, file_path, port)
+        return True
+    except Exception as e:
+        print(e)
+        return False
 
 
 def image_decode(dat_path, output_file_name):

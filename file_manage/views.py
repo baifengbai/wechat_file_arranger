@@ -159,10 +159,13 @@ def send_file_by_id(request):
             if _to == '':
                 _to = GROUP_ID[0]
             file_path = os.path.join(FILE_DIR_PATH, file_info.file_name)
-            send_file(_to, file_path)
-            watch_times = file_info.watch_times
-            WechatGroupFile.objects.filter(file_id=file_id).update(watch_times=int(watch_times) + 1)
-            return render(request, 'yx/send_done.html', {'secret_code': secret_code})
+            result = send_file(_to, file_path)
+            if result:
+                watch_times = file_info.watch_times
+                WechatGroupFile.objects.filter(file_id=file_id).update(watch_times=int(watch_times) + 1)
+                return render(request, 'yx/send_done.html', {'secret_code': secret_code})
+            else:
+                return render(request, 'yx/error.html')
         except Exception as e:
             print(e)
             return render(request, 'yx/error.html')
