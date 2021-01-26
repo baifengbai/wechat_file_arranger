@@ -108,10 +108,14 @@ def handle_response():
                         else:
                             # 来自个人
                             if not _from.endswith('chatroom'):
+                                # 如果是yx管理员
                                 if Administrator.objects.filter(wx_id=_from):
                                     if content in ['管理', 'manage', 'gl', 'yx', 'GL']:
                                         send_yx_link(_from, 'http://yx.laorange.top/admin/', page_name='后台管理界面',
                                                      remark='')
+                                    if content == '更新':
+                                        spy.get_contact_details("25522056057@chatroom")
+
                                 from django.db import close_old_connections
                                 close_old_connections()
                                 if GroupMember.objects.filter(wx_id=_from):
