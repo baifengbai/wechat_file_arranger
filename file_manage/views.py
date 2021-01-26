@@ -2,7 +2,6 @@ import os
 import time
 from traceback import print_exc
 
-from django.db import close_old_connections
 from django.http import HttpResponse
 from django.shortcuts import render
 from wechat_file_arranger.settings import BASE_DIR
@@ -58,6 +57,7 @@ def upload_file(request):
             if not my_file:
                 return HttpResponse("没有检测到文件!")
 
+            from django.db import close_old_connections
             close_old_connections()
             if GroupMember.objects.filter(wx_id=from_whom):
                 if WechatFriendInfo.objects.filter(wx_id=from_whom):
@@ -106,8 +106,9 @@ def verify_before_file_list_page(request):
             time_code = float(code_decrypted)
             delay = time_now - time_code
             if delay < DELAY_ALLOWED:
+                from django.db import close_old_connections
                 close_old_connections()
-                file_list = WechatGroupFile.objects.all()
+                file_list = WechatGroupFile.objects.all().order_by('create_time__date')
                 file_ls_output = []
                 if file_list:
                     for file in file_list:
@@ -154,6 +155,7 @@ def send_file_by_id(request):
                 if delay > DELAY_ALLOWED:
                     return render(request, 'yx/403.html')
 
+            from django.db import close_old_connections
             close_old_connections()
             file_info = WechatGroupFile.objects.get(file_id=file_id)
             if _to == '':
@@ -161,8 +163,6 @@ def send_file_by_id(request):
             file_path = os.path.join(FILE_DIR_PATH, file_info.file_name)
             result = send_file(_to, file_path)
             if result:
-                watch_times = file_info.watch_times
-                WechatGroupFile.objects.filter(file_id=file_id).update(watch_times=int(watch_times) + 1)
                 return render(request, 'yx/send_done.html', {'secret_code': secret_code})
             else:
                 return render(request, 'yx/error.html')

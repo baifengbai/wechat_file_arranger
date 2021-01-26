@@ -1267,12 +1267,12 @@
                 {% for file in file_list reversed %}
                     <tr>
                         {% if 'jpg' in file.file_name %}
-                        <td><a href='http://laorange.top/yx/file/send/?id={{ file.file_id }}&s={{ secret_code }}'><span><img src="../../file/yx/{{ file.file_name }}" style="width: 150px; height: auto;"></span></a></td>
+                        <td><a href='http://laorange.top/yx/file/send/?id={{ file.file_id }}&s={{ secret_code }}'><span><img src="../../yx/file/file/{{ file.file_name }}" style="width: 150px; height: auto;"></span></a></td>
                         {% else %}
                         <td><a href='http://laorange.top/yx/file/send/?id={{ file.file_id }}&s={{ secret_code }}'><span>{{ file.file_name|slice:"16" }}</span></a></td>
                         {% endif %}
                         <td><span>{{ file.remark }}</span></td>
-                        <td><span>{{ file.create_time|date:'n-d H:i' }}</span></td>
+                        <td><span>{{ file.create_time|date:'Y-n-d H:i' }}</span></td>
                         <td><span>{{ file.uploader_nickname }}</span></td>
                     </tr>
                 {% endfor %}
@@ -1280,12 +1280,12 @@
                 {% for file in file_list reversed %}
                     <tr>
                         {% if 'jpg' in file.file_name %}
-                        <td><a href='http://laorange.top/yx/file/send/?id={{ file.file_id }}&t={{ from }}&s={{ secret_code }}'><span><img src="file/yx/{{ file.file_name }}" style="width: 150px; height: auto;"></span></a></td>
+                        <td><a href='http://laorange.top/yx/file/send/?id={{ file.file_id }}&t={{ from }}&s={{ secret_code }}'><span><img src="yx/file/file/{{ file.file_name }}" style="width: 150px; height: auto;"></span></a></td>
                         {% else %}
                         <td><a href='http://laorange.top/yx/file/send/?id={{ file.file_id }}&t={{ from }}&s={{ secret_code }}'><span>{{ file.file_name|slice:"16" }}</span></a></td>
                         {% endif %}
                         <td><span>{{ file.remark }}</span></td>
-                        <td><span>{{ file.create_time|date:'n-d H:i' }}</span></td>
+                        <td><span>{{ file.create_time|date:'Y-n-d H:i' }}</span></td>
                         <td><span>{{ file.uploader_nickname }}</span></td>
                     </tr>
                 {% endfor %}
