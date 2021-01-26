@@ -113,8 +113,6 @@ def handle_response():
                                     if content in ['管理', 'manage', 'gl', 'yx', 'GL']:
                                         send_yx_link(_from, 'http://yx.laorange.top/admin/', page_name='后台管理界面',
                                                      remark='')
-                                    if content == '更新':
-                                        spy.get_contact_details("25522056057@chatroom")
 
                                 from django.db import close_old_connections
                                 close_old_connections()
@@ -260,7 +258,8 @@ def handle_response():
                             else:
                                 WechatFriendInfo.objects.get(wx_id=wxid).update(nickname=remark_guess)
                     else:
-                        print(message)
+                        # print(message)
+                        logger.info(_from, content, "其他消息")
 
             elif data.type == ACCOUNT_DETAILS:  # 登录账号详情
                 if data.code:
@@ -335,13 +334,48 @@ def handle_response():
             elif data.type == GROUP_MEMBER_DETAILS:  # 群成员详情
                 group_member_details = spy_pb2.GroupMemberDetails()
                 group_member_details.ParseFromString(data.bytes)
-                print(group_member_details)
+                if group_member_details.wxid in GROUP_ID:
+                    if_update_group_member = True
+                else:
+                    if_update_group_member = False
+                for group_member in group_member_details.groupMemberDetails:  # 遍历群成员
+                    member_wxid = group_member.wxid
+                    try:
+                        member_nickname = group_member.groupNickname
+                    except:
+                        member_nickname = group_member.nickname
+                    print(member_wxid, member_nickname)
+                    if if_update_group_member:
+                        from django.db import close_old_connections
+                        close_old_connections()
+                        if not GroupMember.objects.filter(wx_id=member_wxid):
+                            GroupMember.objects.create(wx_id=member_wxid, nickname=member_nickname)
+                        else:
+                            if GroupMember.objects.get(wx_id=member_wxid).nickname != member_nickname:
+                                GroupMember.objects.filter(wx_id=member_wxid).update(
+                                    nickname=member_nickname)
 
             elif data.type == GROUP_MEMBER_EVENT:
                 group_member_event = spy_pb2.GroupMemberEvent()
                 group_member_event.ParseFromString(data.bytes)
-                print(group_member_event)
+                # print(group_member_event)
+                if group_member_event.wxid in GROUP_ID:
+                    # for person_join in group_member_event.wxidJoin:
+                    # for person_leave in group_member_event.wxidLeave:
+                    spy.get_contact_details("25522056057@chatroom")
 
+                if group_member_event.wxidJoin:
+                    join_amount = len(group_member_event.wxidJoin)
+                    if join_amount == 1:
+                        logger.info(f"{group_member_event.wxid}:{group_member_event.wxidJoin[0]}入群")
+                    else:
+                        logger.info(f"{group_member_event.wxid}:{group_member_event.wxidJoin[0]}...({join_amount}人)入群")
+                if group_member_event.wxidLeave:
+                    join_amount = len(group_member_event.wxidLeave)
+                    if join_amount == 1:
+                        logger.info(f"{group_member_event.wxid}:{group_member_event.wxidLeave[0]}退群")
+                    else:
+                        logger.info(f"{group_member_event.wxid}:{group_member_event.wxidLeave[0]}...({join_amount}人)退群")
             else:
                 # print(data)
                 pass

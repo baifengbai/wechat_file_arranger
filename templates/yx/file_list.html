@@ -4,6 +4,7 @@
     <meta charset='UTF-8'>
     <meta name='viewport' content='width=device-width initial-scale=1'>
     <title>文件列表</title>
+    <link rel="Shortcut Icon" href="/static/favicon.ico" type="image/x-icon">
     <link href='https://fonts.loli.net/css?family=Open+Sans:400italic,700italic,700,400&subset=latin,latin-ext'
           rel='stylesheet' type='text/css'/>
     <style type='text/css'>html {
@@ -1267,7 +1268,7 @@
                 {% for file in file_list reversed %}
                     <tr>
                         {% if 'jpg' in file.file_name %}
-                        <td><a href='http://laorange.top/yx/file/send/?id={{ file.file_id }}&s={{ secret_code }}'><span><img src="../../yx/file/file/{{ file.file_name }}" style="width: 150px; height: auto;"></span></a></td>
+                        <td><a href='http://laorange.top/yx/file/send/?id={{ file.file_id }}&s={{ secret_code }}'><span><img src="/yx/file/file/{{ file.file_name }}" style="width: 150px; height: auto;"></span></a></td>
                         {% else %}
                         <td><a href='http://laorange.top/yx/file/send/?id={{ file.file_id }}&s={{ secret_code }}'><span>{{ file.file_name|slice:"16" }}</span></a></td>
                         {% endif %}
@@ -1280,7 +1281,7 @@
                 {% for file in file_list reversed %}
                     <tr>
                         {% if 'jpg' in file.file_name %}
-                        <td><a href='http://laorange.top/yx/file/send/?id={{ file.file_id }}&t={{ from }}&s={{ secret_code }}'><span><img src="yx/file/file/{{ file.file_name }}" style="width: 150px; height: auto;"></span></a></td>
+                        <td><a href='http://laorange.top/yx/file/send/?id={{ file.file_id }}&t={{ from }}&s={{ secret_code }}'><span><img src="/yx/file/file/{{ file.file_name }}" style="width: 150px; height: auto;"></span></a></td>
                         {% else %}
                         <td><a href='http://laorange.top/yx/file/send/?id={{ file.file_id }}&t={{ from }}&s={{ secret_code }}'><span>{{ file.file_name|slice:"16" }}</span></a></td>
                         {% endif %}
