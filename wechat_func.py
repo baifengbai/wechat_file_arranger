@@ -55,6 +55,9 @@ FILE_DIR_PATH = os.path.join(DIR_PATH, r'file\yx')
 def handle_response():
     while True:
         try:
+            from django.db import close_old_connections
+            close_old_connections()
+
             data = my_response_queue.get()
             if data.type == PROFESSIONAL_KEY:
                 if not data.code:
@@ -114,8 +117,6 @@ def handle_response():
                                         send_yx_link(_from, 'http://yx.laorange.top/admin/', page_name='后台管理界面',
                                                      remark='')
 
-                                from django.db import close_old_connections
-                                close_old_connections()
                                 if GroupMember.objects.filter(wx_id=_from):
                                     if content in ['文件列表', '文件', '查询', '查询文件']:
                                         send_file_list_link(_from, from_whom=_from)
@@ -153,8 +154,6 @@ def handle_response():
                             # 来自群聊
                             else:
                                 if _from in GROUP_ID:
-                                    from django.db import close_old_connections
-                                    close_old_connections()
                                     if not GroupMember.objects.filter(wx_id=_from_group_member):
                                         GroupMember.objects.create(wx_id=_from_group_member)
                                     if content in ['文件列表', '文件', '查询', '查询文件']:
@@ -166,8 +165,6 @@ def handle_response():
                         logger.info(_from, _to, "图片消息")
                         if not _from.endswith('chatroom'):
                             send_text(_from, '已收到您发送的图片，正在解析，请稍后...')
-                            from django.db import close_old_connections
-                            close_old_connections()
                             if GroupMember.objects.filter(wx_id=_from):
                                 friend_nickname = GroupMember.objects.get(wx_id=_from).nickname
                                 file_path = os.path.join(WECHAT_DIR_PATH, file_path)
@@ -211,8 +208,6 @@ def handle_response():
                         if message.file:
                             # v2.0.0 增加限制：只能通过私聊发送
                             if not _from.endswith('chatroom'):
-                                from django.db import close_old_connections
-                                close_old_connections()
                                 if GroupMember.objects.filter(wx_id=_from):
                                     result = download_file(os.path.join(WECHAT_DIR_PATH, message.file))
                                     if result:
@@ -251,8 +246,7 @@ def handle_response():
                         if remark_nickname.startswith('我是'):
                             remark_guess = remark_nickname[2:]
                             spy.set_remark(wxid, remark_guess)
-                            from django.db import close_old_connections
-                            close_old_connections()
+
                             if not WechatFriendInfo.objects.filter(wx_id=wxid):
                                 WechatFriendInfo.objects.create(wx_id=wxid, nickname=remark_guess)
                             else:
@@ -306,8 +300,6 @@ def handle_response():
                                 member_nickname = group_member.nickname
                                 print(member_wxid, member_nickname)
                                 if if_update_group_member:
-                                    from django.db import close_old_connections
-                                    close_old_connections()
                                     if not GroupMember.objects.filter(wx_id=member_wxid):
                                         GroupMember.objects.create(wx_id=member_wxid, nickname=member_nickname)
                                     else:
@@ -346,8 +338,6 @@ def handle_response():
                         member_nickname = group_member.nickname
                     print(member_wxid, member_nickname)
                     if if_update_group_member:
-                        from django.db import close_old_connections
-                        close_old_connections()
                         if not GroupMember.objects.filter(wx_id=member_wxid):
                             GroupMember.objects.create(wx_id=member_wxid, nickname=member_nickname)
                         else:
