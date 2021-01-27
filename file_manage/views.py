@@ -32,6 +32,13 @@ def verify_before_upload_file(request):
     else:
         code_decrypted = None
 
+    if from_whom:
+        from_whom_decrypted = decrypt_aes_func(from_whom)
+        if not from_whom_decrypted:
+            code_decrypted = None
+        else:
+            from_whom = from_whom_decrypted
+
     if code_decrypted:
         time_now = time.time()
         try:
@@ -100,6 +107,13 @@ def verify_before_file_list_page(request):
     else:
         code_decrypted = None
 
+    if from_whom:
+        from_whom_decrypted = decrypt_aes_func(from_whom)
+        if not from_whom_decrypted:
+            code_decrypted = None
+        else:
+            from_whom = from_whom_decrypted
+
     if code_decrypted:
         time_now = time.time()
         try:
@@ -148,6 +162,13 @@ def send_file_by_id(request):
             else:
                 code_decrypted = None
 
+            if _to:
+                to_decrypted = decrypt_aes_func(_to)
+                if not to_decrypted:
+                    code_decrypted = None
+                else:
+                    _to = to_decrypted
+
             if code_decrypted:
                 time_now = time.time()
                 time_code = float(code_decrypted)
@@ -171,3 +192,8 @@ def send_file_by_id(request):
             return render(request, 'yx/error.html')
     else:
         return render(request, 'yx/error.html')
+
+
+def delete_wechat_group_file(request):
+    pass
+    render(request, 'yx/file_info_edit.html')

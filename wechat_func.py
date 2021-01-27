@@ -18,7 +18,7 @@ from traceback import print_exc
 
 from util.operate_file import parse_dat_to_xor_code, download_file
 
-from util.secret_code import get_secret_code_instance
+from util.secret_code import get_secret_code_instance, encrypt_aes_func
 
 import django
 
@@ -113,8 +113,8 @@ def handle_response():
                             if not _from.endswith('chatroom'):
                                 # 如果是yx管理员
                                 if Administrator.objects.filter(wx_id=_from):
-                                    if content in ['管理', 'manage', 'gl', 'yx', 'GL']:
-                                        send_yx_link(_from, 'http://yx.laorange.top/admin/', page_name='后台管理界面',
+                                    if content in ['后台', '数据库', '数据']:
+                                        send_yx_link(_from, 'http://laorange.top/admin/', page_name='后台管理界面',
                                                      remark='')
 
                                 if GroupMember.objects.filter(wx_id=_from):
@@ -124,7 +124,7 @@ def handle_response():
                                     elif content in ['上传', 'upload', 'sc', 'Sc', 'SC']:
                                         secret_code = get_secret_code_instance()
                                         send_yx_link(_from, 'http://yx.laorange.top/upload/?s=' + secret_code +
-                                                     f"&amp;f={_from}", page_name="文件上传页面")
+                                                     f"&amp;f={encrypt_aes_func(_from)}", page_name="文件上传页面")
 
                                     time_gt = datetime.datetime.now() - datetime.timedelta(minutes=10)
                                     file_no_remark_info = WechatGroupFile.objects.filter(
@@ -377,6 +377,7 @@ def handle_response():
 def send_file_list_link(wxid, from_whom=''):
     secret_code = get_secret_code_instance()
     if from_whom:
+        from_whom = encrypt_aes_func(from_whom)
         from_whom = "&amp;f=" + from_whom
     url = 'yx.laorange.top/?s=' + secret_code + from_whom
     send_yx_link(wxid, url)
