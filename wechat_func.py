@@ -111,15 +111,20 @@ def handle_response():
                         else:
                             # 来自个人
                             if not _from.endswith('chatroom'):
-                                # 如果是yx管理员
-                                if Administrator.objects.filter(wx_id=_from):
-                                    if content in ['后台', '数据库', '数据']:
-                                        send_yx_link(_from, 'http://laorange.top/admin/', page_name='后台管理界面',
-                                                     remark='')
-
                                 if GroupMember.objects.filter(wx_id=_from):
+                                    # 如果是yx管理员
+                                    if content in ['后台', '数据库', '数据']:
+                                        if Administrator.objects.filter(wx_id=_from):
+                                            send_yx_link(_from, 'http://laorange.top/admin/', page_name='数据库管理界面',
+                                                         remark='')
+
                                     if content in ['文件列表', '文件', '查询', '查询文件']:
                                         send_file_list_link(_from, from_whom=_from)
+
+                                    elif content in ['管理', 'manage']:
+                                        secret_code = get_secret_code_instance()
+                                        send_yx_link(_from, 'http://yx.laorange.top/manage/?s=' + secret_code +
+                                                     f"&amp;f={encrypt_aes_func(_from)}", page_name="文件管理页面")
 
                                     elif content in ['上传', 'upload', 'sc', 'Sc', 'SC']:
                                         secret_code = get_secret_code_instance()
@@ -439,7 +444,7 @@ def image_decode(dat_path, output_file_name):
 
 
 def send_yx_link(wxid, url, page_name="文件列表", remark='链接10分钟内有效'):
-    spy.send_link_card(wxid, page_name, remark, 'wxf6791c60a828c6f7', url, 'static/img/yx.jpg')
+    spy.send_link_card(wxid, page_name, remark, 'wxf6791c60a828c6f7', url, 'static/img/laorange_img.jpg')
 
 
 if not os.path.exists('occupy.pid'):

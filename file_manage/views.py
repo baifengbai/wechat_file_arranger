@@ -42,7 +42,7 @@ def verify_before_upload_file(request):
     if code_decrypted:
         time_now = time.time()
         try:
-            time_code = float(code_decrypted)
+            time_code = int(code_decrypted)
             delay = time_now - time_code
             if delay < DELAY_ALLOWED:
                 return render(request, 'yx/upload_file.html', {"from_whom": from_whom})
@@ -117,7 +117,7 @@ def verify_before_file_list_page(request):
     if code_decrypted:
         time_now = time.time()
         try:
-            time_code = float(code_decrypted)
+            time_code = int(code_decrypted)
             delay = time_now - time_code
             if delay < DELAY_ALLOWED:
                 from django.db import close_old_connections
@@ -171,7 +171,7 @@ def send_file_by_id(request):
 
             if code_decrypted:
                 time_now = time.time()
-                time_code = float(code_decrypted)
+                time_code = int(code_decrypted)
                 delay = time_now - time_code
                 if delay > DELAY_ALLOWED:
                     return render(request, 'yx/403.html')
@@ -194,6 +194,193 @@ def send_file_by_id(request):
         return render(request, 'yx/error.html')
 
 
-def delete_wechat_group_file(request):
-    pass
-    render(request, 'yx/file_info_edit.html')
+def manage_wechat_group_file(request):
+    if request.method == 'GET':
+        secret_code = request.GET.get("s", None)
+        from_whom = request.GET.get("f", '')
+    else:
+        secret_code = None
+        from_whom = ''
+    from_whom_origin = from_whom
+
+    if secret_code:
+        code_decrypted = decrypt_aes_func(secret_code)
+    else:
+        code_decrypted = None
+
+    if from_whom:
+        from_whom_decrypted = decrypt_aes_func(from_whom)
+        if not from_whom_decrypted:
+            code_decrypted = None
+        else:
+            from_whom = from_whom_decrypted
+    else:
+        code_decrypted = None
+
+    if code_decrypted:
+        time_now = time.time()
+        try:
+            time_code = int(code_decrypted)
+            delay = time_now - time_code
+            if delay < DELAY_ALLOWED:
+                from django.db import close_old_connections
+                close_old_connections()
+                file_list = WechatGroupFile.objects.filter(uploader=from_whom).order_by('create_time__date')
+                file_ls_output = []
+                if file_list:
+                    uploader_nickname = file_list[0].uploader_nickname
+                    if not uploader_nickname:
+                        uploader_nickname = file_list[0].uploader
+                    for file in file_list:
+                        file_ls_output.append({"file_id": file.file_id,
+                                               'create_time': file.create_time,
+                                               'file_name': file.file_name,
+                                               'remark': file.remark,
+                                               })
+                else:
+                    uploader_nickname = from_whom
+                    file_ls_output = [{"file_id": '',
+                                       'create_time': '',
+                                       'file_name': '',
+                                       'remark': '',
+                                       }]
+                return render(request, 'yx/file_manage_list.html',
+                              {"file_list": file_ls_output, 'from': from_whom, "from_whom_origin": from_whom_origin,
+                               'secret_code': secret_code, "uploader_nickname": uploader_nickname})
+            else:
+                return render(request, 'yx/403.html')
+        except Exception as e:
+            print(e)
+            return render(request, 'yx/403.html')
+    else:
+        return render(request, 'yx/403.html')
+
+
+def edit(request):
+    if request.method == 'GET':
+        secret_code = request.GET.get("s", None)
+        file_id = request.GET.get("id", '')
+        from_whom = request.GET.get("f", '')
+    else:
+        secret_code = None
+        file_id = ''
+        from_whom = ""
+    from_whom_origin = from_whom
+
+    if secret_code and file_id:
+        code_decrypted = decrypt_aes_func(secret_code)
+    else:
+        code_decrypted = None
+
+    if from_whom:
+        from_whom_decrypted = decrypt_aes_func(from_whom)
+        if not from_whom_decrypted:
+            code_decrypted = None
+        else:
+            from_whom = from_whom_decrypted
+    else:
+        code_decrypted = None
+
+    if code_decrypted:
+        time_now = time.time()
+        try:
+            time_code = int(code_decrypted)
+            delay = time_now - time_code
+            if delay < DELAY_ALLOWED:
+                from django.db import close_old_connections
+                close_old_connections()
+                try:
+                    file_info = WechatGroupFile.objects.get(file_id=file_id)
+                    user_nickname = GroupMember.objects.get(wx_id=from_whom).nickname
+                except:
+                    return HttpResponse("您提交的信息有误")
+
+                return render(request, 'yx/file_info_edit.html',
+                              {"file_id": file_id,
+                               "user_nickname": user_nickname,
+                               "secret_code": secret_code,
+                               "from_whom_origin": from_whom_origin,
+                               "file": {"file_name": file_info.file_name,
+                                        "remark": file_info.remark,
+                                        "create_time": file_info.create_time,
+                                        "uploader": file_info.uploader,
+                                        "uploader_nickname": file_info.uploader_nickname}})
+            else:
+                return render(request, 'yx/403.html')
+        except Exception as e:
+            print(e)
+            return render(request, 'yx/error.html')
+    else:
+        return render(request, 'yx/403.html')
+
+
+def save_edit(request):
+    if request.method == "POST":
+        try:
+            file_id = request.POST.get("file_id", '')
+            # file_name = request.POST.get("file_name", '')
+            remark = request.POST.get("remark", '')
+            from django.db import close_old_connections
+            close_old_connections()
+            WechatGroupFile.objects.filter(file_id=file_id).update(remark=remark)
+            return render(request, 'yx/update_done.html')
+        except Exception as e:
+            print(e)
+            return render(request, 'yx/error.html')
+    else:
+        return render(request, 'yx/403.html')
+
+
+def deleting_wechat_group_file(request):
+    if request.method == 'GET':
+        secret_code = request.GET.get("s", None)
+        file_id = request.GET.get("id", '')
+        from_whom = request.GET.get("f", '')
+    else:
+        secret_code = None
+        file_id = ''
+        from_whom = ""
+    # from_whom_origin = from_whom
+
+    if secret_code and file_id:
+        code_decrypted = decrypt_aes_func(secret_code)
+    else:
+        code_decrypted = None
+
+    if from_whom:
+        from_whom_decrypted = decrypt_aes_func(from_whom)
+        if not from_whom_decrypted:
+            code_decrypted = None
+        else:
+            from_whom = from_whom_decrypted
+    else:
+        code_decrypted = None
+
+    if code_decrypted:
+        time_now = time.time()
+        try:
+            time_code = int(code_decrypted)
+            delay = time_now - time_code
+            if delay < DELAY_ALLOWED:
+                from django.db import close_old_connections
+                close_old_connections()
+                try:
+                    file_info = WechatGroupFile.objects.get(file_id=file_id)
+                    assert from_whom == file_info.uploader
+                except:
+                    return HttpResponse("您提交的信息有误")
+
+                file_path = os.path.join(FILE_DIR_PATH, file_info.file_name)
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+                    WechatGroupFile.objects.filter(file_id=file_id).delete()
+                    return render(request, 'yx/delete_done.html')
+                else:
+                    return HttpResponse("未在本地找到此文件，删除失败")
+            else:
+                return render(request, 'yx/403.html')
+        except Exception as e:
+            print(e)
+            return render(request, 'yx/error.html')
+    else:
+        return render(request, 'yx/403.html')

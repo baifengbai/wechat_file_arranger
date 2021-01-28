@@ -1,0 +1,196 @@
+<html lang="zh-hans">
+<head>
+    <title>修改 微信-群文件信息</title>
+    <link rel="stylesheet" type="text/css" href="/static/admin/css/base.css">
+    <link rel="stylesheet" type="text/css" href="/static/admin/css/forms.css">
+
+
+    <!--    <script type="text/javascript" src="/admin/jsi18n/"></script>-->
+    <!--    <script type="text/javascript" src="/static/admin/js/vendor/jquery/jquery.min.js"></script>-->
+    <!--    <script type="text/javascript" src="/static/admin/js/jquery.init.js"></script>-->
+    <!--    <script type="text/javascript" src="/static/admin/js/core.js"></script>-->
+    <!--    <script type="text/javascript" src="/static/admin/js/admin/RelatedObjectLookups.js"></script>-->
+    <!--    <script type="text/javascript" src="/static/admin/js/actions.min.js"></script>-->
+    <!--    <script type="text/javascript" src="/static/admin/js/urlify.js"></script>-->
+    <!--    <script type="text/javascript" src="/static/admin/js/prepopulate.min.js"></script>-->
+    <!--    <script type="text/javascript" src="/static/admin/js/vendor/xregexp/xregexp.min.js"></script>-->
+
+
+    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <meta http-equiv='Content-type' content='text/htm'>
+    <link rel="stylesheet" type="text/css" href="/static/admin/css/responsive.css">
+
+
+    <meta name="robots" content="NONE,NOARCHIVE">
+</head>
+
+
+<body class=" app-file_manage model-wechatgroupfile change-form"
+      data-admin-utc-offset="28800">
+
+<!-- Container -->
+<div id="container">
+
+
+    <!-- Header -->
+    <div id="header">
+        <div id="branding">
+
+            <h1 id="site-name">修改 文件信息</h1>
+
+        </div>
+
+
+        <div id="user-tools">
+
+            欢迎，
+            <strong>{{user_nickname}}</strong>.
+
+
+        </div>
+
+
+    </div>
+    <!-- END Header -->
+
+    <div class="breadcrumbs">
+        <a>群文件管理</a>
+    </div>
+
+
+    <!-- Content -->
+    <div id="content" class="colM">
+
+        <h1>修改 微信-群文件信息</h1>
+        <div id="content-main">
+
+
+            <form action="/yx/file/edit/save/" method="post" id="wechatgroupfile_form" novalidate>
+                {% csrf_token %}
+                <input type="hidden" id="file_id" name="file_id" value="{{ file_id }}">
+                <div>
+                    <fieldset class="module aligned ">
+
+                        <div class="form-row field-file_name">
+
+
+                            <div>
+
+
+                                <label>文件名:</label>
+
+                                <div class="readonly">{{file.file_name}}</div>
+
+
+                            </div>
+
+                        </div>
+
+                        <div class="form-row field-remark">
+
+
+                            <div>
+
+
+                                <label class="required" for="id_remark">备注:</label>
+
+                                <input type="text" name="remark" value="{{ file.remark }}" class="vTextField"
+                                       maxlength="64"
+                                       required id="id_remark">
+
+
+                            </div>
+
+                        </div>
+
+                        <div class="form-row field-uploader">
+
+                            <div>
+
+                                <label class="required" for="id_uploader">上传者:</label>
+
+                                <div class="readonly">{{file.uploader}}</div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="form-row field-uploader_nickname">
+
+                            <div>
+
+
+                                <label class="required" for="id_uploader_nickname">上传者昵称:</label>
+
+                                <div class="readonly">{{file.uploader_nickname}}</div>
+
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="form-row field-create_time">
+
+
+                            <div>
+
+
+                                <label>创建时间:</label>
+
+                                <div class="readonly">{{file.create_time}}</div>
+
+
+                            </div>
+
+                        </div>
+
+                    </fieldset>
+
+
+                    <div class="submit-row">
+
+                        <input type="submit" value="保存" class="default" name="_save">
+
+
+                        <p class="deletelink-box"><a
+                                href="/yx/file/deleting/?s={{secret_code}}&f={{from_whom_origin}}&id={{file_id}}"
+                                class="deletelink">删除该文件</a></p>
+
+
+                        <!--                        <input type="submit" value="保存并增加另一个" name="_addanother">-->
+                        <!--                        <input type="submit" value="保存并继续编辑" name="_continue">-->
+
+
+                    </div>
+
+
+                    <!--                    <script type="text/javascript"-->
+                    <!--                            id="django-admin-form-add-constants"-->
+                    <!--                            src="/static/admin/js/change_form.js"-->
+                    <!--                    >-->
+                    <!--                    </script>-->
+
+
+                    <!--                    <script type="text/javascript"-->
+                    <!--                            id="django-admin-prepopulated-fields-constants"-->
+                    <!--                            src="/static/admin/js/prepopulate_init.js"-->
+                    <!--                            data-prepopulated-fields="[]">-->
+                    <!--                    </script>-->
+
+
+                </div>
+            </form>
+        </div>
+
+
+        <br class="clear">
+    </div>
+    <!-- END Content -->
+
+    <div id="footer"></div>
+</div>
+<!-- END Container -->
+
+</body>
+</html>
