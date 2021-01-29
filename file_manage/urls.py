@@ -2,7 +2,7 @@ from django.urls import path, re_path
 from django.views.static import serve
 
 from file_manage.views import verify_before_upload_file, verify_before_file_list_page, send_file_by_id, upload_file, \
-    manage_wechat_group_file, deleting_wechat_group_file, edit, save_edit
+    manage_wechat_group_file, deleting_wechat_group_file, edit, save_edit, ensure_delete
 
 urlpatterns = [
     path(r'', verify_before_file_list_page),
@@ -14,5 +14,6 @@ urlpatterns = [
     path(r'manage/', manage_wechat_group_file),
     path(r'edit/', edit),
     path(r'edit/save/', save_edit),
-    path(r'deleting/', deleting_wechat_group_file)
+    path(r'ensure_delete/', ensure_delete),
+    path(r'delete/', deleting_wechat_group_file)
 ]

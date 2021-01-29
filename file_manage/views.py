@@ -331,7 +331,7 @@ def save_edit(request):
         return render(request, 'yx/403.html')
 
 
-def deleting_wechat_group_file(request):
+def ensure_delete(request):
     if request.method == 'GET':
         secret_code = request.GET.get("s", None)
         file_id = request.GET.get("id", '')
@@ -340,7 +340,7 @@ def deleting_wechat_group_file(request):
         secret_code = None
         file_id = ''
         from_whom = ""
-    # from_whom_origin = from_whom
+    from_whom_origin = from_whom
 
     if secret_code and file_id:
         code_decrypted = decrypt_aes_func(secret_code)
@@ -370,17 +370,39 @@ def deleting_wechat_group_file(request):
                 except:
                     return HttpResponse("您提交的信息有误")
 
-                file_path = os.path.join(FILE_DIR_PATH, file_info.file_name)
-                if os.path.exists(file_path):
-                    os.remove(file_path)
-                    WechatGroupFile.objects.filter(file_id=file_id).delete()
-                    return render(request, 'yx/delete_done.html')
-                else:
-                    return HttpResponse("未在本地找到此文件，删除失败")
+                return render(request, 'yx/ensure_delete.html', {
+                    "file_id": file_id,
+                    "file_name": file_info.file_name,
+                    "remark": file_info.remark,
+                    "create_time": file_info.create_time,
+                    "secret_code": secret_code,
+                    "from_whom_origin": from_whom_origin
+                })
             else:
                 return render(request, 'yx/403.html')
         except Exception as e:
             print(e)
             return render(request, 'yx/error.html')
+    else:
+        return render(request, 'yx/403.html')
+
+
+def deleting_wechat_group_file(request):
+    if request.method == 'POST':
+        file_id = request.POST.get("file_id", '')
+        from django.db import close_old_connections
+        close_old_connections()
+        try:
+            file_info = WechatGroupFile.objects.get(file_id=file_id)
+        except:
+            return HttpResponse("您提交的信息有误")
+
+        file_path = os.path.join(FILE_DIR_PATH, file_info.file_name)
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            WechatGroupFile.objects.filter(file_id=file_id).delete()
+            return render(request, 'yx/delete_done.html')
+        else:
+            return HttpResponse("未在本地找到此文件，删除失败")
     else:
         return render(request, 'yx/403.html')
