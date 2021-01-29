@@ -23,6 +23,7 @@ from django.conf import settings  # 新增
 urlpatterns = [
     path(r'admin/', admin.site.urls),
     path(r'favicon.ico', RedirectView.as_view(url=r'static/favicon.ico')),
+    path(r'robots.txt', RedirectView.as_view(url=r'static/robots.txt')),
     path(r'yx/file/', include('file_manage.urls')),
     re_path(r'^static/(?P<path>.*)$', static.serve,
             {'document_root': settings.STATIC_ROOT}, name='static'),

@@ -28,7 +28,7 @@ from file_manage.models import WechatGroupFile, GroupMember, WechatFriendInfo, A
 
 # ------⭐以下内容需要自行配置⭐-----------↓
 # ------⭐以下内容需要自行配置⭐-----------↓
-# ------⭐以下内容需mi要自行配置⭐-----------↓
+# ------⭐以下内容需要自行配置⭐-----------↓
 
 # TODO:微信掉线时是否发送警告邮件，如需使用该模块，需要在.\util\message_config.ini填写相关参数
 IF_SEND_WARNING_MESSAGE_WHEN_WECHAT_LOG_OUT = False

@@ -65,7 +65,7 @@
 >
 > 3. wechat_func中，为保证端口不冲突，程序启动后会生成名为occupy的文件，请在下一次启动时将其删除
 >
-> 4. 可选功能：微信掉线时发送警告邮件，需要在.\util\message_config.ini填写相关参数
+> 4. 可选功能：微信掉线时发送警告邮件，需要在[message_config.ini](https://github.com/laorange/wechat_file_arranger/blob/main/util/message_config.ini)中填写相关参数
 >
 > 5. 机器号电脑端发送的所有信息都会失效
 >
